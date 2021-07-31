@@ -8,4 +8,5 @@ class Article {
   late String relatives;
   late String voicedBy;
   late String name;
+  late String profession;
 }
