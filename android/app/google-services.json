@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "629103497500",
+    "project_id": "futurama-cartoon",
+    "storage_bucket": "futurama-cartoon.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629103497500:android:23e63210ef35be959aead9",
+        "android_client_info": {
+          "package_name": "com.example.futurama_cartoon"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629103497500-gdh33p94s1shkklm15ghbljonnuh6r0o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.futurama_cartoon",
+            "certificate_hash": "0944f5c15474c1a5ffefe24ed97609c766037112"
+          }
+        },
+        {
+          "client_id": "629103497500-ifil9spjigoq1r9st7vp24gs53rosv7m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACHD17YkfzIyQfIpoVfO09wLydeaZ-7es"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629103497500-ifil9spjigoq1r9st7vp24gs53rosv7m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
