@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:futurama_cartoon/api/data.dart';
+import 'package:futurama_cartoon/api/model.dart';
 import 'package:futurama_cartoon/res/custom_colors.dart';
 import 'package:futurama_cartoon/utils/authentication.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import 'login_screen.dart';
-import 'package:share/share.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 
 class UserInfoScreen extends StatefulWidget {
@@ -23,13 +24,6 @@ class UserInfoScreen extends StatefulWidget {
 class _UserInfoScreenState extends State<UserInfoScreen> {
   late User _user;
   bool _isSigningOut = false;
-  bool isloading = false;
-
-  getandSetData() async {
-    setState(() {
-      isloading = true;
-    });
-  }
 
   Route _routeToSignInScreen() {
     return PageRouteBuilder(
@@ -50,6 +44,17 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     );
   }
 
+  bool isloading = false;
+  List<Article> articles = [];
+  Character character = Character();
+  getandSetData() async {
+    await character.getChracterDetails();
+    articles = character.articles;
+    setState(() {
+      isloading = true;
+    });
+  }
+
   @override
   void initState() {
     _user = widget._user;
@@ -57,12 +62,27 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     super.initState();
   }
 
+  late PageController pageController;
+  Duration pageTurnDuration = Duration(milliseconds: 500);
+  Curve pageTurnCurve = Curves.ease;
+  void goForward() {
+    pageController.nextPage(duration: pageTurnDuration, curve: pageTurnCurve);
+  }
+
+  void goBack() {
+    pageController.previousPage(
+        duration: pageTurnDuration, curve: pageTurnCurve);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: Text("Competitive Calendar", style: GoogleFonts.mcLaren()),
+        title: Text(
+          "Futurama Cartoon",
+          style: GoogleFonts.mcLaren(),
+        ),
         centerTitle: true,
       ),
       drawer: Drawer(
@@ -142,168 +162,164 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       ),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 10,
-              ),
-            ],
-          ),
+        child: GestureDetector(
+          onHorizontalDragEnd: (dragEndDetails) {
+            if (dragEndDetails.primaryVelocity! < 0) {
+              // Page forwards
+              print('Move page forwards');
+              goForward();
+            } else if (dragEndDetails.primaryVelocity! > 0) {
+              // Page backwards
+              print('Move page backwards');
+              goBack();
+            }
+          },
+          child: isloading
+              ? PageView.builder(
+                  physics: ClampingScrollPhysics(),
+                  itemCount: articles.length,
+                  itemBuilder: (context, index) {
+                    return CharacterDetail(
+                      species: articles[index].species,
+                      age: articles[index].age,
+                      planet: articles[index].planet,
+                      profession: articles[index].profession,
+                      status: articles[index].status,
+                      // firstApperance: articles[index].firstApperance,
+                      urlToImage: articles[index].urlToImage,
+                      relatives: articles[index].relatives,
+                      voicedBy: articles[index].voicedBy,
+                      name: articles[index].name,
+                    );
+                  },
+                )
+              : Center(
+                  child: CircularProgressIndicator(),
+                ),
         ),
       ),
     );
   }
 }
 
-class ContestTile extends StatelessWidget {
-  String name, phase, platform, url;
-  DateTime startdate, enddate;
-  ContestTile(
-      {required this.name,
-      required this.phase,
-      required this.platform,
-      required this.url,
-      required this.startdate,
-      required this.enddate});
-  Color getColor() {
-    if (phase == "Running") {
-      return Colors.lightGreen.shade300;
-    } else if (phase == "Ended") {
-      return Colors.red.shade300;
-    } else if (phase == "Upcoming") {
-      return Colors.yellow.shade300;
-    }
-    return Colors.blueGrey.shade400;
-  }
+class CharacterDetail extends StatelessWidget {
+  late String species;
+  late String age;
+  late String planet;
+  late String profession;
+  late String status;
+  // late String firstApperance;
+  late String urlToImage;
+  late String relatives;
+  late String voicedBy;
+  late String name;
+  CharacterDetail({
+    required this.species,
+    required this.age,
+    required this.planet,
+    required this.profession,
+    required this.status,
+    // required this.firstApperance,
+    required this.urlToImage,
+    required this.relatives,
+    required this.voicedBy,
+    required this.name,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  final RenderObject? box = context.findRenderObject();
-                  Share.share(
-                      "Contest Name : $name \nPhase : $phase \nUrl: $url \nPlatfrom: $platform \nFrom ${DateFormat('dd-MMM-yyyy').format(startdate.toLocal())} to ${DateFormat('dd-MMM-yyyy').format(enddate.toLocal())} \nTimings :- ${DateFormat('KK:mm:a').format(startdate.toLocal())} to ${DateFormat('KK:mm:a').format(enddate.toLocal())}");
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(right: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Icon(Icons.share),
-                    ],
-                  ),
-                ),
-              ),
-              Text(name),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('Phase :-'),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(phase),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('Platform :-'),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(platform),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('Start Date :-'),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    DateFormat('dd-MMM-yyyy').format(startdate.toLocal()),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('from'),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    DateFormat('KK:mm:a').format(startdate.toLocal()),
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text('to'),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    DateFormat('KK:mm:a').format(enddate.toLocal()),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('End Date :-'),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    DateFormat('dd-MMM-yyyy').format(enddate.toLocal()),
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: () {
-                  launch(url);
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(right: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Icon(Icons.link),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width / 2,
+            height: 200,
+            child: Image(image: NetworkImage(urlToImage), fit: BoxFit.fill),
           ),
-          decoration: BoxDecoration(
-            color: getColor(),
-            borderRadius: BorderRadius.circular(8),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 25, horizontal: 25),
+            child: Text(
+              name,
+              style: GoogleFonts.mcLaren(
+                fontSize: 25,
+              ),
+            ),
           ),
-        ),
-        SizedBox(
-          height: 25,
-        ),
-      ],
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+            child: Text(
+              "Status : $status",
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+            child: Text(
+              "Age : $age",
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+            child: Text(
+              "Species : $species",
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+            child: Text(
+              "Planet : $planet",
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+            child: Text(
+              "Profession : $profession",
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ),
+          // Padding(
+          //   padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+          //   child: Text(
+          //     "First Appearance : $firstApperance",
+          //     style: TextStyle(
+          //       fontSize: 15,
+          //     ),
+          //   ),
+          // ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+            child: Text(
+              "Relatives : $relatives",
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 25),
+            child: Text(
+              "Voiced by : $voicedBy",
+              style: TextStyle(
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
