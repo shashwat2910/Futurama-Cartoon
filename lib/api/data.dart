@@ -16,7 +16,7 @@ class Character {
         article.planet = jsonData[i]["Planet"];
         article.profession = jsonData[i]["Profession"];
         article.status = jsonData[i]["Status"];
-        article.firstApperance = jsonData[i]["FirstApperance"];
+        // article.firstApperance = jsonData[i]["FirstApperance"];
         article.urlToImage = jsonData[i]["PicUrl"];
         article.relatives = jsonData[i]["Relatives"];
         article.voicedBy = jsonData[i]["VoicedBy"];
